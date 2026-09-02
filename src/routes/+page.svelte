@@ -153,6 +153,7 @@
 	.maintenance-banner__icon {
 		display: inline-flex;
 		flex: 0 0 auto;
+		color: var(--status-maintenance);
 	}
 
 	.maintenance-banner__icon svg {

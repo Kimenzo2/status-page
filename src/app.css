@@ -9,7 +9,7 @@
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 
-	/* Primitive ramps: one gray surface ramp, warm-neutral type, one slate accent. */
+	/* Primitive ramps: one gray surface ramp and warm-neutral type. */
 	--gray-950: oklch(0.162 0 0);
 	--gray-900: oklch(0.215 0 0);
 	--gray-850: oklch(0.25 0 0);
@@ -23,9 +23,31 @@
 	--warm-400: oklch(0.7281 0.0163 78);
 	--warm-500: oklch(0.6132 0.017 78);
 	--warm-700: oklch(0.2296 0.0098 78);
-	--slate-200: oklch(0.83 0.035 250);
-	--slate-300: oklch(0.76 0.035 250);
-	--slate-900: oklch(0.3 0.018 250);
+	--green-1: oklch(0.178 0.029 145);
+	--green-2: oklch(0.209 0.041 145);
+	--green-3: oklch(0.272 0.076 145);
+	--green-4: oklch(0.322 0.103 145);
+	--green-5: oklch(0.367 0.125 145);
+	--green-6: oklch(0.417 0.145 145);
+	--green-7: oklch(0.484 0.164 145);
+	--green-8: oklch(0.571 0.181 145);
+	--green-9: oklch(0.623 0.178 145);
+	--green-10: oklch(0.676 0.167 145);
+	--green-11: oklch(0.843 0.107 145);
+	--green-12: oklch(0.919 0.063 145);
+	/* Selected Radix ramps from oklch.fyi: warning, critical, and planned work. */
+	--amber-1: oklch(0.193 0.027 75);
+	--amber-2: oklch(0.224 0.038 75);
+	--amber-9: oklch(0.733 0.194 75);
+	--amber-11: oklch(0.894 0.11 75);
+	--red-1: oklch(0.195 0.03 17);
+	--red-2: oklch(0.227 0.041 17);
+	--red-9: oklch(0.647 0.176 17);
+	--red-11: oklch(0.863 0.102 17);
+	--purple-1: oklch(0.183 0.027 295);
+	--purple-2: oklch(0.214 0.038 295);
+	--purple-9: oklch(0.637 0.185 295);
+	--purple-11: oklch(0.853 0.107 295);
 
 	/* Semantic tokens: components consume roles, never primitives. */
 	--status-canvas: var(--gray-950);
@@ -39,17 +61,36 @@
 	--status-line-soft: oklch(1 0 0 / 0.06);
 	--status-shadow: color-mix(in oklab, var(--mono-black) 20%, transparent);
 	--status-shadow-soft: color-mix(in oklab, var(--mono-black) 18%, transparent);
-	/* Health states intentionally share the slate accent; text and symbols carry meaning. */
-	--status-positive: var(--slate-300);
-	--status-positive-strong: var(--slate-200);
-	--status-positive-surface: var(--slate-900);
-	--status-on-positive: var(--gray-950);
-	--status-positive-border: color-mix(in oklab, var(--slate-300) 28%, transparent);
-	--status-positive-mark: color-mix(in oklab, var(--slate-300) 62%, transparent);
-	--status-warning: var(--slate-300);
-	--status-warning-surface: var(--slate-900);
-	--status-warning-border: color-mix(in oklab, var(--slate-300) 30%, transparent);
-	--status-warning-mark: color-mix(in oklab, var(--slate-300) 68%, transparent);
+	/* State tokens carry meaning; labels and symbols remain present alongside color. */
+	--status-positive: var(--green-9);
+	--status-positive-strong: var(--green-11);
+	--status-positive-surface: var(--green-2);
+	--status-on-positive: var(--green-1);
+	--status-positive-border: color-mix(in oklab, var(--green-9) 28%, transparent);
+	--status-positive-mark: color-mix(in oklab, var(--green-9) 62%, transparent);
+	--status-warning: var(--amber-9);
+	--status-warning-strong: var(--amber-11);
+	--status-warning-surface: var(--amber-2);
+	--status-on-warning: var(--amber-1);
+	--status-warning-border: color-mix(in oklab, var(--amber-9) 30%, transparent);
+	--status-warning-mark: color-mix(in oklab, var(--amber-9) 68%, transparent);
+	--status-critical: var(--red-9);
+	--status-critical-strong: var(--red-11);
+	--status-critical-surface: var(--red-2);
+	--status-on-critical: var(--red-1);
+	--status-critical-border: color-mix(in oklab, var(--red-9) 30%, transparent);
+	--status-critical-mark: color-mix(in oklab, var(--red-9) 68%, transparent);
+	--status-maintenance: var(--purple-9);
+	--status-maintenance-strong: var(--purple-11);
+	--status-maintenance-surface: var(--purple-2);
+	--status-on-maintenance: var(--purple-1);
+	--status-maintenance-border: color-mix(in oklab, var(--purple-9) 30%, transparent);
+	--status-maintenance-mark: color-mix(in oklab, var(--purple-9) 68%, transparent);
+	--status-unknown: var(--status-ink-soft);
+	--status-unknown-strong: var(--status-ink);
+	--status-unknown-surface: var(--gray-850);
+	--status-unknown-border: var(--status-line);
+	--status-unknown-mark: color-mix(in oklab, var(--status-ink-soft) 62%, transparent);
 	--status-focus: var(--warm-200);
 	--status-selection: var(--warm-300);
 	--status-selection-ink: var(--warm-700);
