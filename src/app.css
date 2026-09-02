@@ -1,0 +1,373 @@
+@import '@fontsource-variable/geist/wght.css';
+
+:root {
+	font-family: "Geist Variable", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	font-optical-sizing: auto;
+	color: var(--status-ink);
+	background: var(--status-canvas);
+	color-scheme: dark;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+	/* Primitive ramps: one gray surface ramp, warm-neutral type, one slate accent. */
+	--gray-950: oklch(0.162 0 0);
+	--gray-900: oklch(0.215 0 0);
+	--gray-850: oklch(0.25 0 0);
+	--gray-800: oklch(0.286 0 0);
+	--gray-700: oklch(0.34 0 0);
+	--mono-black: oklch(0 0 0);
+	--mono-white: oklch(1 0 0);
+	--warm-50: oklch(0.9568 0.0119 79.8);
+	--warm-200: oklch(0.8909 0.0242 78);
+	--warm-300: oklch(0.8411 0.0304 78);
+	--warm-400: oklch(0.7281 0.0163 78);
+	--warm-500: oklch(0.6132 0.017 78);
+	--warm-700: oklch(0.2296 0.0098 78);
+	--slate-200: oklch(0.83 0.035 250);
+	--slate-300: oklch(0.76 0.035 250);
+	--slate-900: oklch(0.3 0.018 250);
+
+	/* Semantic tokens: components consume roles, never primitives. */
+	--status-canvas: var(--gray-950);
+	--status-surface: var(--gray-900);
+	--status-surface-muted: var(--gray-850);
+	--status-surface-hover: var(--gray-800);
+	--status-ink: var(--warm-50);
+	--status-ink-soft: var(--warm-400);
+	--status-ink-faint: var(--warm-500);
+	--status-line: oklch(1 0 0 / 0.1);
+	--status-line-soft: oklch(1 0 0 / 0.06);
+	--status-shadow: color-mix(in oklab, var(--mono-black) 20%, transparent);
+	--status-shadow-soft: color-mix(in oklab, var(--mono-black) 18%, transparent);
+	/* Health states intentionally share the slate accent; text and symbols carry meaning. */
+	--status-positive: var(--slate-300);
+	--status-positive-strong: var(--slate-200);
+	--status-positive-surface: var(--slate-900);
+	--status-on-positive: var(--gray-950);
+	--status-positive-border: color-mix(in oklab, var(--slate-300) 28%, transparent);
+	--status-positive-mark: color-mix(in oklab, var(--slate-300) 62%, transparent);
+	--status-warning: var(--slate-300);
+	--status-warning-surface: var(--slate-900);
+	--status-warning-border: color-mix(in oklab, var(--slate-300) 30%, transparent);
+	--status-warning-mark: color-mix(in oklab, var(--slate-300) 68%, transparent);
+	--status-focus: var(--warm-200);
+	--status-selection: var(--warm-300);
+	--status-selection-ink: var(--warm-700);
+	--status-image-outline: oklch(1 0 0 / 0.1);
+	--status-radius-control: 10px;
+	--status-radius-row: 12px;
+	--status-radius-surface: 16px;
+	--status-radius-panel: 22px;
+
+	/* Semantic type scale: keep UI labels compact without shrinking readable copy. */
+	--status-text-caption: 0.75rem;
+	--status-text-ui: 0.8125rem;
+	--status-text-ui-lg: 0.875rem;
+	--status-text-body-sm: 0.9375rem;
+	--status-text-body: 1rem;
+	--status-text-title-sm: 1.0625rem;
+	--status-text-title-md: 1.6875rem;
+	--status-text-title-lg: 1.875rem;
+	--status-text-display: clamp(2.35rem, 5vw, 4rem);
+	--status-text-display-mobile: clamp(2.2rem, 12vw, 3.2rem);
+}
+
+html,
+body {
+	min-width: 320px;
+	min-height: 100%;
+	margin: 0;
+	background: var(--status-canvas);
+	color: var(--status-ink);
+}
+
+body {
+	font-size: var(--status-text-body);
+	line-height: 1.5;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+button,
+input,
+select {
+	font: inherit;
+}
+
+a {
+	color: inherit;
+	text-decoration-thickness: from-font;
+	text-decoration-skip-ink: auto;
+	text-underline-position: from-font;
+	text-underline-offset: 3px;
+}
+
+button,
+select,
+input {
+	-webkit-tap-highlight-color: transparent;
+}
+
+.skip-link {
+	position: absolute;
+	top: 8px;
+	inset-inline-start: 16px;
+	z-index: 10;
+	padding: 8px 12px;
+	border: 1px solid var(--status-line);
+	border-radius: 6px;
+	background: var(--status-surface);
+	color: var(--status-ink);
+	font-size: var(--status-text-ui);
+	font-weight: 650;
+	text-decoration: none;
+	transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+	transform: translateY(0);
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+:focus-visible {
+  outline: 1px solid var(--status-focus);
+	outline-offset: 3px;
+}
+
+@media (forced-colors: active) {
+	:focus-visible {
+    outline: 1px solid ButtonText;
+	}
+}
+
+::selection {
+	background: var(--status-selection);
+	color: var(--status-selection-ink);
+}
+
+.site-header {
+	border: 0;
+	background: transparent;
+}
+
+.site-header__inner {
+	width: min(100% - 48px, 1120px);
+	margin-inline: auto;
+}
+
+.site-header__inner {
+	display: flex;
+	min-height: 72px;
+	align-items: center;
+	gap: 30px;
+}
+
+.site-brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	color: var(--status-ink);
+	font-size: var(--status-text-body-sm);
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.site-brand img {
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	outline: 1px solid var(--status-image-outline);
+}
+
+.status-tabs {
+	display: flex;
+	align-self: stretch;
+	align-items: center;
+	gap: 5px;
+	margin-inline-start: auto;
+}
+
+.status-tab {
+	display: inline-flex;
+	height: 40px;
+	align-items: center;
+	padding: 0 12px;
+	border-radius: 8px;
+	color: var(--status-ink-soft);
+	font-size: var(--status-text-ui);
+	font-weight: 550;
+	text-decoration: none;
+}
+
+.status-tab.active {
+	background: transparent;
+	color: var(--status-ink);
+}
+
+.status-tab.active {
+	font-weight: 700;
+}
+
+@media (hover: hover) {
+	.status-tab:hover {
+		color: var(--status-ink);
+	}
+}
+
+.header-subscribe {
+	min-height: 38px;
+	padding: 0 14px;
+	border: 1px solid var(--status-line);
+	border-radius: var(--status-radius-control);
+	background: inherit;
+	color: var(--status-ink);
+	cursor: pointer;
+	font-size: var(--status-text-caption);
+	font-weight: 700;
+}
+
+.header-subscribe.subscribed {
+	border-color: var(--status-line);
+	background: inherit;
+	color: var(--status-ink);
+}
+
+.route-page {
+	display: grid;
+	min-height: calc(100dvh - 72px);
+	place-items: center;
+	padding: 56px 24px;
+}
+
+.route-card {
+	width: min(100%, 560px);
+	padding: 42px;
+	border: 1px solid var(--status-line);
+	border-radius: var(--status-radius-panel);
+	background: transparent;
+	text-align: center;
+}
+
+.route-card__icon {
+	display: grid;
+	width: 46px;
+	height: 46px;
+	place-items: center;
+	margin: 0 auto 20px;
+	border-radius: 50%;
+	background: var(--status-surface-muted);
+	color: var(--status-ink-soft);
+	font-size: 1.375rem;
+	font-weight: 700;
+}
+
+.route-card h1 {
+	margin: 0;
+	font-size: var(--status-text-title-lg);
+	letter-spacing: -0.04em;
+	line-height: 1.1;
+	text-wrap: balance;
+}
+
+.route-card p {
+	margin: 13px auto 0;
+	max-width: 62ch;
+	color: var(--status-ink-soft);
+	font-size: var(--status-text-body-sm);
+	line-height: 1.6;
+	overflow-wrap: break-word;
+	text-wrap: pretty;
+}
+
+.route-card a {
+	display: inline-flex;
+	min-height: 40px;
+	align-items: center;
+	padding: 8px 12px;
+	border-radius: 8px;
+	margin-top: 26px;
+	color: var(--status-ink-soft);
+	font-size: var(--status-text-ui);
+	font-weight: 700;
+}
+
+@media (max-width: 47.5rem) {
+	.site-header__inner {
+		width: min(100% - 32px, 1120px);
+		flex-wrap: wrap;
+		gap: 10px 18px;
+		padding-block: 12px;
+	}
+
+	.status-tabs {
+		order: 3;
+		width: 100%;
+		height: 38px;
+		margin-inline-start: 0;
+		overflow-x: auto;
+	}
+
+	.status-tab {
+		flex: 0 0 auto;
+		height: 34px;
+		padding-inline: 10px;
+	}
+
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.status-tab {
+		transition: color 150ms ease-out;
+	}
+
+	.header-subscribe {
+		transition: transform 150ms ease-out;
+	}
+
+	.service-group__header {
+		transition: transform 150ms ease-out;
+	}
+
+	.header-subscribe:active {
+		transform: scale(0.96);
+	}
+
+	.service-group__header:active {
+		transform: scale(0.96);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		transition: none !important;
+		animation: none !important;
+	}
+
+	.header-subscribe:active {
+		transform: none;
+	}
+
+	.service-group__header:active {
+		transform: none;
+	}
+}
