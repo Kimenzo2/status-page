@@ -1,5 +1,5 @@
 <script lang="ts">
-	import logo from '$lib/assets/productclient-logo.svg';
+	import { statusSite } from '$lib/config/site';
 	import '../app.css';
 	import StatusShell from '$lib/components/StatusShell.svelte';
 
@@ -7,8 +7,8 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" type="image/svg+xml" href={logo} />
-	<link rel="alternate icon" href={logo} />
+	<link rel="icon" type="image/svg+xml" href={statusSite.logo} />
+	<link rel="alternate icon" href={statusSite.logo} />
 </svelte:head>
 
 <StatusShell>

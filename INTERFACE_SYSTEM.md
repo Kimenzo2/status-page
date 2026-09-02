@@ -40,16 +40,15 @@ Semantic tokens consume those primitives:
 - positive and warning state surfaces, marks, borders, and foregrounds
 - focus, selection, and image-outline roles
 
-The status-state roles use the slate ramp rather than a brand-green UI accent. The remaining literal bright green is inside the ProductClient logo SVG and favicon asset (`#18e299`); it is asset artwork, not an interface token.
+The status-state roles use the slate ramp rather than a brand-green UI accent. The remaining literal bright green is inside the default brand-mark artwork (`#18e299`); it is asset artwork, not an interface token.
 
 ## Typography
 
 Measured from `src/app.css` and the emitted HTML:
 
-- `@fontsource-variable/geist/wght.css` serves Geist Variable as local `.woff2` files.
-- The emitted `@font-face` declarations cover `font-weight: 100 900`, with `font-display: swap`.
-- The root stack is `"Geist Variable", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`.
-- `font-optical-sizing: auto`, macOS smoothing, and font-aware link underlines are global.
+- `@fontsource/inter` serves Inter 400, 500, and 600 as local `.woff2` files.
+- The root stack is `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif`.
+- Kerning, common ligatures, font-synthesis protection, macOS smoothing, and font-aware link underlines are global.
 - The semantic type scale is `12 / 13 / 14 / 15 / 16 / 17 / 27 / 30px`, with fluid display steps from `2.35rem` to `4rem` and a mobile display step from `2.2rem` to `3.2rem`.
 - Body text is `16px` with unitless `1.5` line-height. Headings use tighter `1.1` or `1.02` line-heights and balance wrapping. Descriptions use `text-wrap: pretty`, `overflow-wrap: break-word`, and capped measures.
 - The hero timestamp and uptime percentage use tabular numerals so changing values do not shift nearby layout.
@@ -75,7 +74,7 @@ The page is intentionally flat and headless:
 - structural borders are `1px`
 - service and route surfaces use the neutral surface ramp
 - depth comes from two restrained shadow recipes rather than decorative effects
-- the ProductClient logo receives a `1px` pure-white outline at 10% opacity in dark mode
+- the brand mark uses its source artwork without an additional CSS outline
 
 Radii are local to the role: small controls use `8–10px`, service surfaces use `10–14px`, and circular status marks use `50%`.
 
@@ -94,8 +93,8 @@ There are no keyframe entrance sequences, gradients, blur layers, canvas effects
 
 ## Assets and delivery
 
-- `src/lib/assets/productclient-logo.svg` is imported by SvelteKit and appears as an inline data URL in the fetched SSR HTML.
-- `src/routes/favicon.ico/+server.ts` serves the favicon as SVG with a one-year immutable cache policy.
+- `static/brand-mark.svg` is served as the default brand mark and can be replaced through the public site configuration.
+- the favicon uses the configured brand-mark URL.
 - No raster images, modern raster formats, or remote font hosts are used.
 
 ## States and boundaries

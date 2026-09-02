@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/state';
-	import logo from '$lib/assets/productclient-logo.svg';
+	import { statusSite } from '$lib/config/site';
 
 	const tabs = [
 		{ href: '/', label: 'Overview' },
@@ -19,9 +19,9 @@
 
 <header class="site-header">
 	<div class="site-header__inner">
-		<a class="site-brand" href="/" aria-label="ProductClient status overview">
-			<img src={logo} alt="" width="30" height="30" draggable="false" />
-			<span>ProductClient</span>
+		<a class="site-brand" href="/" aria-label={`${statusSite.name} status overview`}>
+			<img src={statusSite.logo} alt="" width="30" height="30" draggable="false" />
+			<span>{statusSite.name}</span>
 		</a>
 
 		<nav class="status-tabs" aria-label="Status pages">
@@ -39,7 +39,7 @@
 </header>
 
 <span class="sr-only" role="status" aria-live="polite">
-	{#if subscribed}You are subscribed to ProductClient status updates.{:else}You are not subscribed to ProductClient status updates.{/if}
+	{#if subscribed}You are subscribed to {statusSite.name} status updates.{:else}You are not subscribed to {statusSite.name} status updates.{/if}
 </span>
 
 {@render children()}

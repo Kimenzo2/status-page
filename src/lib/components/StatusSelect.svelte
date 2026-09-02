@@ -166,7 +166,7 @@
 	.status-select__label {
 		color: var(--status-ink-soft);
 		font-size: var(--status-text-caption);
-		font-weight: 650;
+		font-weight: 500;
 	}
 
 	.status-select__trigger {
@@ -244,7 +244,7 @@
 
 	.status-select__option.selected {
 		color: var(--status-ink);
-		font-weight: 650;
+		font-weight: 500;
 	}
 
 	.status-select__option:focus-visible {
@@ -256,7 +256,7 @@
 		min-width: 1em;
 		color: var(--status-ink-soft);
 		font-size: var(--status-text-ui);
-		font-weight: 700;
+		font-weight: 600;
 		text-align: center;
 	}
 
