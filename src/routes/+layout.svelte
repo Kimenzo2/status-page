@@ -6,6 +6,7 @@
 	let { data, children } = $props();
 	const themeStyle = getStatusThemeStyle();
 	let siteName = $derived(data.tenant?.record?.displayName ?? statusSite.name);
+	let basePath = $derived(data.tenant?.basePath ?? '');
 </script>
 
 <svelte:head>
@@ -14,7 +15,7 @@
 </svelte:head>
 
 <div class="status-app" style={themeStyle}>
-		<StatusShell {siteName}>
+		<StatusShell {siteName} {basePath}>
 		{@render children()}
 	</StatusShell>
 </div>

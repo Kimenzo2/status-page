@@ -14,12 +14,38 @@ productclient.com
 status.productclient.com
         -> Status Page Worker / neutral starter tenant
 
+status.productclient.com/{slug}[/uptime|/incidents|/maintenance]
+        -> Status Page Worker (path-based tenants, live)
+        -> shared productclient-tenants D1 registry
+
 productclient-status-page.<account>.workers.dev
         -> Status Page Worker (current deployment)
         -> shared productclient-tenants D1 registry
 ```
 
 The Documentation Worker already owns `*.productclient.com/*`. This Worker claims the more-specific exact host `status.productclient.com` for the neutral starter tenant, with an explicit `status.productclient.com/*` route so the documentation wildcard cannot intercept its page routes. The tenant resolver is also prepared for future `*.status.productclient.com` customer hostnames, but a nested wildcard route is not enabled: the current Cloudflare zone has only Universal SSL, which does not cover a second-level wildcard such as `*.status.productclient.com`. Customer hostnames should be registered individually through Cloudflare for SaaS / Custom Hostnames until a delegated status zone or deeper certificate strategy is in place.
+
+## Path-based tenants (primary, live)
+
+Tenants are served from first path segments on the neutral host itself:
+`status.productclient.com/faith` renders Faith's status page and
+`status.productclient.com/faith/uptime` renders the tenant's uptime view. This
+needs no second-level wildcard or certificate coverage because the host is
+already covered by Universal SSL.
+
+- `src/hooks.server.ts` resolves the tenant server-side from the original URL
+  and 404s unknown or suspended slugs; the neutral app routes (`/uptime`,
+  `/incidents`, `/maintenance`, static assets) keep serving the ProductClient
+  status site untouched.
+- `src/hooks.ts` (the shared `reroute` hook, SvelteKit's equivalent of the
+  Mintlify subpath proxy) strips the tenant segment before route matching, so
+  the browser URL keeps the prefix while the existing root routes render.
+- Shell tabs and the brand link are prefixed with the tenant base so
+  navigation stays inside the tenant.
+
+A tenant slug can never shadow an app route: reserved first segments are
+checked first and customers cannot claim them (they are reserved slugs in
+Postgres).
 
 The Worker resolves the tenant server-side from the hostname. It never accepts a tenant selector from a query parameter or client-side state. The current starter shares the source-editable status content across tenants while using D1 for tenant identity. Live monitoring and customer-editable content are separate integrations and should be added behind authenticated APIs/webhooks later.
 
