@@ -67,7 +67,7 @@
 		</section>
 
 		{#if activeIncident}
-			<IncidentSummary incident={activeIncident} />
+			<IncidentSummary incident={activeIncident} basePath={page.data.tenant ? `/${page.data.tenant.slug}` : ''} />
 		{:else}
 			<EmptyState state={statusSite.copy.emptyStates.overviewIncidents} compact />
 		{/if}
@@ -94,6 +94,7 @@
 						events={demoMaintenanceEvents}
 						startDate={maintenanceCalendarStart}
 						endDate={maintenanceCalendarEnd}
+						basePath={page.data.tenant ? `/${page.data.tenant.slug}` : ''}
 					/>
 
 					{#if demoServices.length}

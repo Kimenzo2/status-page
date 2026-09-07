@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { isReservedAppSegment, isSlugShaped } from '$lib/tenantRouting';
 	import type { EmptyStateCopy } from '$lib/config/models';
 
 	let {
@@ -10,6 +12,13 @@
 		compact?: boolean;
 		heading?: 'p' | 'h2' | 'h3';
 	} = $props();
+
+	// Path-based tenants keep internal links inside their prefix; derive it
+	// from the visible URL (the reroute hook strips it for route matching).
+	const tenantPrefix = $derived.by(() => {
+		const segment = page.url.pathname.split('/')[1] ?? '';
+		return segment && isSlugShaped(segment) && !isReservedAppSegment(segment) ? `/${segment}` : '';
+	});
 </script>
 
 <div class="empty-state" class:empty-state--compact={compact} data-tone={state.tone ?? 'neutral'}>
@@ -23,7 +32,7 @@
 		<svelte:element this={heading} class="empty-state__title">{state.title}</svelte:element>
 		<p>{state.summary}</p>
 		{#if state.action}
-			<a class="empty-state__action" href={state.action.href}>
+			<a class="empty-state__action" href={`${tenantPrefix}${state.action.href}`}>
 				{state.action.label}<span aria-hidden="true">↗</span>
 			</a>
 		{/if}

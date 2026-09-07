@@ -20,13 +20,18 @@
 		events,
 		startDate,
 		endDate,
-		locale
+		locale,
+		basePath = ''
 	}: {
 		events: MaintenanceEvent[];
 		startDate: string;
 		endDate: string;
 		locale?: string;
+		/** Tenant path prefix (e.g. "/faith") so calendar links stay inside the tenant prefix. */
+		basePath?: string;
 	} = $props();
+
+	const withBase = (href: string) => `${basePath}${href}`;
 
 	let calendar: HTMLDivElement | undefined = $state();
 	let calendarShell: HTMLDivElement | undefined = $state();
@@ -123,7 +128,7 @@
 	);
 
 	const firstEvent = $derived(events[0]);
-	const firstEventHref = $derived(firstEvent ? `/maintenance?event=${encodeURIComponent(firstEvent.id)}` : '/maintenance');
+	const firstEventHref = $derived(firstEvent ? withBase(`/maintenance?event=${encodeURIComponent(firstEvent.id)}`) : withBase('/maintenance'));
 
 	function parseDay(value: string) {
 		const [year, month, day] = value.slice(0, 10).split('-').map(Number);
@@ -261,7 +266,7 @@
 									class:maintenance-calendar__cell--completed={day.event.status === 'completed'}
 									class:maintenance-calendar__cell--cancelled={day.event.status === 'cancelled'}
 									data-maintenance-date={day.date}
-									href={`/maintenance?event=${encodeURIComponent(day.event.id)}`}
+									href={withBase(`/maintenance?event=${encodeURIComponent(day.event.id)}`)}
 									aria-label={`${day.event.title}, ${maintenanceStatusLabels[day.event.status]}, ${formatEventWindow(day.event)}`}
 									aria-describedby={hovered?.date === day.date ? 'maintenance-calendar-tooltip' : undefined}
 									onfocus={handleFocus}

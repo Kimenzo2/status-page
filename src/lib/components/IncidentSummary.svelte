@@ -6,7 +6,14 @@
 	} from '$lib/data/incidents';
 	import { demoServices } from '$lib/data/status';
 
-	let { incident }: { incident: Incident } = $props();
+	let {
+		incident,
+		basePath = ''
+	}: {
+		incident: Incident;
+		/** Tenant path prefix (e.g. "/faith") so internal links stay inside the tenant prefix. */
+		basePath?: string;
+	} = $props();
 
 	const copy = statusSite.copy.incidents;
 	const serviceNames = new Map(demoServices.map((service) => [service.id, service.name]));
@@ -52,7 +59,7 @@
 		</ol>
 	{/if}
 
-	<a class="incident-summary__link" href={copy.historyHref}>
+	<a class="incident-summary__link" href={`${basePath}${copy.historyHref}`}>
 		{copy.viewHistory}
 		<span aria-hidden="true">↗</span>
 	</a>
