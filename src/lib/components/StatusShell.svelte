@@ -2,29 +2,25 @@
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { statusSite } from '$lib/config/site';
+	import { formatCopy } from '$lib/data/status';
 
-	const tabs = [
-		{ href: '/', label: 'Overview' },
-		{ href: '/incidents', label: 'Incidents' },
-		{ href: '/maintenance', label: 'Maintenance' },
-		{ href: '/uptime', label: 'Uptime' }
-	];
+	const tabs = statusSite.navigation;
 
 	let subscribed = $state(false);
 	let pathname = $derived(page.url.pathname);
-	let { children }: { children: Snippet } = $props();
+	let { children, siteName }: { children: Snippet; siteName: string } = $props();
 </script>
 
-<a class="skip-link" href="#main-content">Skip to content</a>
+<a class="skip-link" href="#main-content">{statusSite.copy.accessibility.skipToContent}</a>
 
 <header class="site-header">
 	<div class="site-header__inner">
-		<a class="site-brand" href="/" aria-label={`${statusSite.name} status overview`}>
+		<a class="site-brand" href="/" aria-label={formatCopy(statusSite.copy.accessibility.brandLabel, { site: siteName })}>
 			<img src={statusSite.logo} alt="" width="30" height="30" draggable="false" />
-			<span>{statusSite.name}</span>
+			<span>{siteName}</span>
 		</a>
 
-		<nav class="status-tabs" aria-label="Status pages">
+		<nav class="status-tabs" aria-label={statusSite.copy.navigationAriaLabel}>
 			{#each tabs as tab}
 				<a class:active={pathname === tab.href} class="status-tab" href={tab.href} aria-current={pathname === tab.href ? 'page' : undefined}>
 					{tab.label}
@@ -33,13 +29,17 @@
 		</nav>
 
 		<button class:subscribed type="button" class="header-subscribe" aria-pressed={subscribed} onclick={() => (subscribed = !subscribed)}>
-			{subscribed ? 'Unsubscribe' : 'Subscribe'}
+			{subscribed ? statusSite.copy.unsubscribe : statusSite.copy.subscribe}
 		</button>
 	</div>
 </header>
 
 <span class="sr-only" role="status" aria-live="polite">
-	{#if subscribed}You are subscribed to {statusSite.name} status updates.{:else}You are not subscribed to {statusSite.name} status updates.{/if}
+	{#if subscribed}
+		{formatCopy(statusSite.copy.subscriptionAnnouncement.subscribed, { site: siteName })}
+	{:else}
+		{formatCopy(statusSite.copy.subscriptionAnnouncement.unsubscribed, { site: siteName })}
+	{/if}
 </span>
 
 {@render children()}

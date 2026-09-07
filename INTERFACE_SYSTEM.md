@@ -1,11 +1,11 @@
-# ProductClient status page — frontend system
+# Status Page — frontend system
 
 ## Scope and method
 
 This describes how the status page is built, not whether the design is good.
 
 - Route inspected: `http://127.0.0.1:5173/`
-- Source inspected: `src/app.html`, `src/app.css`, `src/routes/+page.svelte`, `src/lib/components/StatusShell.svelte`, route pages, and `package.json`
+- Source inspected: `src/app.html`, `src/app.css`, `src/hooks.server.ts`, `src/lib/config/site.ts`, `src/routes/+page.svelte`, `src/lib/components/StatusShell.svelte`, route pages, and `package.json`
 - Runtime evidence: fetched SSR HTML and the successful Vite production build
 - Browser-computed values, paint order, and live animation state were not available in this environment
 
@@ -16,14 +16,14 @@ Measured from `package.json` and the generated HTML:
 - SvelteKit `^2.70.3` with Svelte `^5.56.1`
 - Vite `^8.0.16` and TypeScript
 - SSR-first SvelteKit pages with client hydration. The fetched HTML contains the complete status content before the generated SvelteKit client entry loads.
-- Deployment uses `@sveltejs/adapter-auto`; production hosting is not selected yet, which is why the build prints the adapter-auto informational warning.
+- Deployment uses `@sveltejs/adapter-cloudflare` with a generated SvelteKit Worker entry and Cloudflare Static Assets. Wrangler binds the shared `productclient-tenants` D1 registry as `DB`.
 - No Tailwind, CSS-in-JS system, or external component library is present.
 
 The interface is composed from one shared component, `StatusShell.svelte`, plus route-local Svelte markup and CSS. Global rules live in `src/app.css`; the overview route owns its page-specific styles in a Svelte-scoped `<style>` block.
 
 ## Token system
 
-The global system has two layers.
+The global system has two layers. The authoritative starter values live in `src/lib/config/site.ts` under `theme.cssVariables` and are applied to the shared app shell. `src/app.css` retains the same values as a safe pre-shell fallback and owns global selectors.
 
 Primitive ramps are authored in OKLCH:
 
@@ -40,7 +40,7 @@ Semantic tokens consume those primitives:
 - positive and warning state surfaces, marks, borders, and foregrounds
 - focus, selection, and image-outline roles
 
-The status-state roles use the slate ramp rather than a brand-green UI accent. The remaining literal bright green is inside the default brand-mark artwork (`#18e299`); it is asset artwork, not an interface token.
+The status-state roles use the slate ramp rather than a brand-green UI accent. The remaining literal bright green is inside the neutral starter-mark artwork (`#18e299`); it is asset artwork, not an interface token.
 
 ## Typography
 
@@ -59,7 +59,8 @@ Measured from the source:
 
 - Header content: `min(100% - 48px, 1120px)`; on narrow screens it becomes `min(100% - 32px, 1120px)` and wraps the route tabs to a horizontal scroll row.
 - Overview content: `min(100%, 900px)`.
-- Empty route cards: `min(100%, 560px)`.
+- Empty states remain in normal document flow and inherit the surface that owns them; they do not add a nested card.
+- Empty-state illustrations use a 64px default, 48px compact, and 40px compact-mobile box.
 - The base document floor is `320px` wide.
 - Responsive breakpoints are `47.5rem` for the shell and `38.75rem` for the overview content.
 - The uptime history renders 90 bars on desktop and 45 columns across two rows on narrow screens; the narrow layout no longer removes the second half of the history.
@@ -93,8 +94,9 @@ There are no keyframe entrance sequences, gradients, blur layers, canvas effects
 
 ## Assets and delivery
 
-- `static/brand-mark.svg` is served as the default brand mark and can be replaced through the public site configuration.
-- the favicon uses the configured brand-mark URL.
+- `static/starter-mark.svg` is served as the neutral starter mark and can be replaced through the public site configuration.
+- `static/illustrations/reicon/` contains the localized Reicon SVG artwork selected by `statusSite.copy.emptyStates`.
+- the favicon uses the configured starter or tenant mark URL.
 - No raster images, modern raster formats, or remote font hosts are used.
 
 ## States and boundaries
@@ -109,7 +111,7 @@ The live surface includes:
 - clear versus watch impact result styling
 - reduced-motion and forced-colors branches
 
-There is no loading or network-error UI yet because the current page uses static fixture data. The temporary `/__break` route is a stress harness and is not imported by production routes.
+There is no loading or network-error UI yet because the current page uses source-editable fixture data from `statusSite.demo`. The temporary `/__break` route is a stress harness and is not imported by production routes.
 
 ## What this method cannot establish
 

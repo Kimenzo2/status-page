@@ -1,63 +1,61 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
 	import type { UptimeDay, UptimeDayStatus } from '$lib/data/uptime';
+	import { formatUptime, statusLabels } from '$lib/data/status';
+	import { statusSite } from '$lib/config/site';
 
 	let {
 		days,
 		variant = 'overview',
-		ariaLabel = 'Daily uptime history'
+		ariaLabel = statusSite.copy.uptime.defaultAriaLabel,
+		locale
 	}: {
 		days: UptimeDay[];
 		variant?: 'overview' | 'route';
 		ariaLabel?: string;
+		locale?: string;
 	} = $props();
 
 	let chart: HTMLDivElement | undefined = $state();
 	let containerWidth = $state(0);
 	let tooltipWidth = $state(0);
+	let activeIndex = $state(0);
 	let hovered = $state<{
 		date: string;
-		uptime: string;
+		uptime: UptimeDay['uptime'];
 		status: UptimeDayStatus;
+		note?: string;
 		left: number;
 		top: number;
 	}>();
 
-	const dateFormatter = new Intl.DateTimeFormat('en-US', {
+	const dateFormatter = $derived(new Intl.DateTimeFormat(locale ?? statusSite.locale, {
 		day: 'numeric',
 		month: 'short',
 		year: 'numeric',
-		timeZone: 'UTC'
-	});
+		timeZone: statusSite.timeZone
+	}));
 
-	const statusLabels: Record<UptimeDayStatus, string> = {
-		operational: 'Operational',
-		degraded: 'Degraded',
-		outage: 'Outage',
-		unknown: 'Verification delayed'
-	};
+	const columnCount = $derived(Math.max(days.length, 1));
+	const mobileColumnCount = $derived(Math.max(Math.ceil(days.length / 2), 1));
+
+	function formatDayLabel(day: UptimeDay) {
+		const uptime = day.uptime === null
+			? statusSite.copy.uptime.unavailable
+			: `${formatUptime(day.uptime)} ${statusSite.copy.uptime.metricSuffix}`;
+		return [statusLabels[day.status], uptime, dateFormatter.format(new Date(day.date)), day.note]
+			.filter(Boolean)
+			.join(', ');
+	}
 
 	const tooltipLeft = $derived(
 		hovered
-			? Math.max(
-					tooltipWidth / 2,
-					Math.min(hovered.left, Math.max(tooltipWidth / 2, containerWidth - tooltipWidth / 2))
-			  )
+			? Math.max(tooltipWidth / 2 + 12, Math.min(hovered.left, containerWidth - tooltipWidth / 2 - 12))
 			: 0
 	);
 
-	function handlePointerOver(event: PointerEvent) {
-		if (!chart || !(event.target instanceof HTMLElement)) return;
-
-		const target = event.target.closest<HTMLElement>('[data-uptime-index]');
-		if (!target || !chart.contains(target)) {
-			hovered = undefined;
-			return;
-		}
-
-		const index = Number(target.dataset.uptimeIndex);
+	function showDay(index: number, target: HTMLElement) {
 		const day = days[index];
-		if (!day) return;
+		if (!day || !chart) return;
 
 		const targetRect = target.getBoundingClientRect();
 		const chartRect = chart.getBoundingClientRect();
@@ -68,41 +66,125 @@
 			top: targetRect.top - chartRect.top
 		};
 	}
+
+	function showDayAt(index: number) {
+		const target = chart?.querySelector<HTMLElement>(`[data-uptime-index="${index}"]`);
+		if (target) showDay(index, target);
+	}
+
+	function handlePointerOver(event: PointerEvent) {
+		if (!chart || !(event.target instanceof HTMLElement)) return;
+
+		const target = event.target.closest<HTMLElement>('[data-uptime-index]');
+		if (!target || !chart.contains(target)) return;
+
+		showDay(Number(target.dataset.uptimeIndex), target);
+	}
+
+	function handleKeydown(event: KeyboardEvent, index: number) {
+		const columns =
+			typeof window !== 'undefined' && window.matchMedia('(max-width: 38.75rem)').matches
+				? mobileColumnCount
+				: columnCount;
+		let nextIndex = index;
+
+		switch (event.key) {
+			case 'ArrowLeft':
+				nextIndex = Math.max(0, index - 1);
+				break;
+			case 'ArrowRight':
+				nextIndex = Math.min(days.length - 1, index + 1);
+				break;
+			case 'ArrowUp':
+				nextIndex = Math.max(0, index - columns);
+				break;
+			case 'ArrowDown':
+				nextIndex = Math.min(days.length - 1, index + columns);
+				break;
+			case 'Home':
+				nextIndex = 0;
+				break;
+			case 'End':
+				nextIndex = days.length - 1;
+				break;
+			default:
+				return;
+		}
+
+		event.preventDefault();
+		activeIndex = nextIndex;
+		showDayAt(nextIndex);
+		chart?.querySelector<HTMLElement>(`[data-uptime-index="${nextIndex}"]`)?.focus();
+	}
+
+	function handleFocusOut(event: FocusEvent) {
+		if (!chart || (event.relatedTarget instanceof Node && chart.contains(event.relatedTarget))) return;
+		hovered = undefined;
+	}
+
+	function handlePointerLeave() {
+		if (!chart || !(document.activeElement instanceof Node) || !chart.contains(document.activeElement)) {
+			hovered = undefined;
+		}
+	}
 </script>
 
 <div
 	class="uptime-chart uptime-chart--{variant}"
+	style={`--uptime-columns: ${columnCount}; --uptime-mobile-columns: ${mobileColumnCount};`}
 	bind:this={chart}
 	bind:clientWidth={containerWidth}
-	onpointerover={handlePointerOver}
-	onpointerleave={() => (hovered = undefined)}
-	role="presentation"
 >
-	<div class="uptime-bars" role="img" aria-label={ariaLabel}>
+	<div
+		class="uptime-bars"
+		role="group"
+		aria-label={ariaLabel}
+		onpointerover={handlePointerOver}
+		onpointerleave={handlePointerLeave}
+		onfocusout={handleFocusOut}
+	>
 		{#each days as day, index (day.date)}
-			<span
+			<button
+				type="button"
+				class="uptime-cell"
 				data-uptime-index={index}
 				data-status={day.status}
-				aria-hidden="true"
-				title={`${statusLabels[day.status]} · ${dateFormatter.format(new Date(day.date))}`}
-			></span>
+				aria-label={formatDayLabel(day)}
+				tabindex={index === activeIndex ? 0 : -1}
+				onfocus={() => {
+					activeIndex = index;
+					showDayAt(index);
+				}}
+				onclick={() => {
+					activeIndex = index;
+					showDayAt(index);
+				}}
+				onkeydown={(event) => handleKeydown(event, index)}
+			></button>
 		{/each}
 	</div>
 
 	{#if hovered}
 		<div
-			class="uptime-island"
-			role="tooltip"
-			transition:fade={{ duration: 100 }}
+			class="uptime-island uptime-island--{variant}"
+			aria-hidden="true"
 			style:left={`${tooltipLeft}px`}
 			style:top={`${hovered.top}px`}
 			bind:clientWidth={tooltipWidth}
 		>
 			<span class="uptime-island__status" data-status={hovered.status}>
 				<span class="uptime-island__dot" aria-hidden="true"></span>
-				{hovered.uptime} uptime
+				{statusLabels[hovered.status]}
 			</span>
-			<span class="uptime-island__date">{dateFormatter.format(new Date(hovered.date))}</span>
+			{#if variant === 'route'}
+				<span class="uptime-island__separator" aria-hidden="true">·</span>
+				<span class="uptime-island__metric">{formatUptime(hovered.uptime)} {statusSite.copy.uptime.metricSuffix} · {dateFormatter.format(new Date(hovered.date))}</span>
+			{:else}
+				<span class="uptime-island__metric">{formatUptime(hovered.uptime)} {statusSite.copy.uptime.metricSuffix} · {dateFormatter.format(new Date(hovered.date))}</span>
+				{#if hovered.note}
+					<span class="uptime-island__note">{hovered.note}</span>
+				{/if}
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -115,7 +197,7 @@
 
 	.uptime-bars {
 		display: grid;
-		grid-template-columns: repeat(90, minmax(0, 1fr));
+		grid-template-columns: repeat(var(--uptime-columns), minmax(0, 1fr));
 		gap: 2px;
 		align-items: stretch;
 	}
@@ -129,53 +211,100 @@
 		padding-top: 24px;
 	}
 
-	.uptime-bars span {
+	.uptime-cell {
+		appearance: none;
 		min-width: 2px;
+		margin: 0;
+		padding: 0;
+		border: 0;
 		border-radius: 2px;
 		background: var(--status-positive);
+		color: inherit;
+		cursor: help;
+		font: inherit;
 	}
 
-	.uptime-bars span[data-status='degraded'] {
+	.uptime-cell[data-status='degraded'] {
 		background: var(--status-warning);
 	}
 
-	.uptime-bars span[data-status='outage'] {
+	.uptime-cell[data-status='outage'] {
 		background: var(--status-critical);
 	}
 
-	.uptime-bars span[data-status='unknown'] {
+	.uptime-cell[data-status='unknown'] {
 		background: var(--status-unknown-mark);
+	}
+
+	.uptime-cell:focus-visible {
+		position: relative;
+		z-index: 1;
+		outline: 2px solid var(--status-focus);
+		outline-offset: 3px;
 	}
 
 	.uptime-island {
 		position: absolute;
 		z-index: 2;
-		display: grid;
-		gap: 2px;
-		min-width: max-content;
-		padding: 8px 10px;
+		inline-size: min(300px, calc(100% - 24px));
+		padding: 6px 9px;
 		border: 1px solid var(--status-line);
 		border-radius: 10px;
 		background: var(--status-surface);
 		color: var(--status-ink);
+		font-size: var(--status-text-caption);
+		line-height: 1.25;
 		pointer-events: none;
-		transform: translate(-50%, calc(-100% - 8px));
-		white-space: nowrap;
+		transform: translate(-50%, calc(-100% - 2px));
+		white-space: normal;
+	}
+
+	.uptime-island--route {
+		display: inline-flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 7px;
+	}
+
+	.uptime-island--route .uptime-island__metric {
+		white-space: normal;
+		overflow-wrap: break-word;
+	}
+
+	.uptime-island--overview {
+		display: grid;
+		gap: 2px;
 	}
 
 	.uptime-island__status {
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		font-size: var(--status-text-caption);
+		min-width: 0;
 		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+		text-wrap: pretty;
+		overflow-wrap: break-word;
+	}
+
+	.uptime-island__separator {
+		color: var(--status-ink-faint);
 		font-variant-numeric: tabular-nums;
 	}
 
-	.uptime-island__date {
+	.uptime-island__metric {
+		min-width: 0;
 		color: var(--status-ink-soft);
-		font-size: var(--status-text-caption);
 		font-variant-numeric: tabular-nums;
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
+
+	.uptime-island__note {
+		min-width: 0;
+		color: var(--status-ink);
+		overflow-wrap: break-word;
+		text-wrap: pretty;
 	}
 
 	.uptime-island__dot {
@@ -198,28 +327,28 @@
 	}
 
 	@media (hover: hover) {
-		.uptime-bars span:hover {
+		.uptime-cell:hover {
 			background: var(--status-positive-strong);
 		}
 
-		.uptime-bars span[data-status='degraded']:hover {
+		.uptime-cell[data-status='degraded']:hover {
 			background: var(--status-warning-strong);
 		}
 
-		.uptime-bars span[data-status='outage']:hover {
+		.uptime-cell[data-status='outage']:hover {
 			background: var(--status-critical-strong);
 		}
 	}
 
 	@media (max-width: 38.75rem) {
 		.uptime-chart--overview .uptime-bars {
-			grid-template-columns: repeat(45, minmax(0, 1fr));
+			grid-template-columns: repeat(var(--uptime-mobile-columns), minmax(0, 1fr));
 			grid-auto-flow: row;
 			height: 62px;
 		}
 
 		.uptime-chart--route .uptime-bars {
-			grid-template-columns: repeat(45, minmax(0, 1fr));
+			grid-template-columns: repeat(var(--uptime-mobile-columns), minmax(0, 1fr));
 			grid-auto-flow: row;
 			height: 70px;
 		}

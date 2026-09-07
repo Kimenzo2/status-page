@@ -1,55 +1,64 @@
 <script lang="ts">
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import { page } from '$app/state';
 	import { statusSite } from '$lib/config/site';
+	import {
+		demoServices,
+		demoStatusSnapshot,
+		formatCopy,
+		formatUptime,
+		getAverageUptime,
+		getOverallStatus,
+		statusLabels
+	} from '$lib/data/status';
 	import { demoUptimeDays } from '$lib/data/uptime';
+	import ServiceStatusReports from '$lib/components/ServiceStatusReports.svelte';
 	import UptimeBars from '$lib/components/UptimeBars.svelte';
 
-	const journeys = [
-		{ name: 'Sign in', detail: 'Authentication and account access' },
-		{ name: 'Dashboard', detail: 'Workspace loading and saved changes' },
-		{ name: 'API requests', detail: 'API v1 and API v2' },
-		{ name: 'File uploads', detail: 'Uploads and file processing' }
-	];
+	const overallStatus = getOverallStatus(demoServices);
+	const overallUptime = getAverageUptime(demoUptimeDays);
+	const verifiedDateFormatter = new Intl.DateTimeFormat(statusSite.locale, {
+		dateStyle: 'long',
+		timeStyle: 'short',
+		timeZone: statusSite.timeZone
+	});
+	const verifiedAt = verifiedDateFormatter.format(new Date(demoStatusSnapshot.lastVerified));
+	let siteName = $derived(page.data.tenant?.record?.displayName ?? statusSite.name);
 </script>
 
+
 <svelte:head>
-	<title>Uptime | {statusSite.name} status</title>
-	<meta name="description" content={`${statusSite.name} availability history for the last 90 days.`} />
+	<title>{formatCopy(statusSite.copy.pageTitle, { title: statusSite.copy.uptime.title, site: siteName })}</title>
+	<meta name="description" content={formatCopy(statusSite.copy.uptime.metaDescription, { site: siteName, period: formatCopy(statusSite.copy.uptime.period, { days: demoUptimeDays.length }) })} />
 </svelte:head>
 
 <main id="main-content" class="route-page">
 	<div class="route-container">
 		<header class="route-header">
-			<h1>Uptime</h1>
-			<p>Availability across {statusSite.name} service journeys.</p>
+			<h1>{statusSite.copy.uptime.title}</h1>
+			<p>{formatCopy(statusSite.copy.uptime.description, { site: siteName })}</p>
 		</header>
 
 		<section class="route-block uptime-summary" aria-labelledby="uptime-summary-title">
 			<div class="uptime-summary__heading">
-				<h2 id="uptime-summary-title">{statusSite.name}</h2>
-				<strong>100.00%</strong>
+				<h2 id="uptime-summary-title">{siteName}</h2>
+				<strong>{formatUptime(overallUptime)}</strong>
 			</div>
-			<UptimeBars days={demoUptimeDays} variant="route" ariaLabel={`90 days of operational availability for ${statusSite.name}`} />
-			<div class="uptime-scale"><span>90 days ago</span><span>Today</span></div>
-			<p class="uptime-verified">Last verified September 2, 2026 at 2:13 pm EAT</p>
+			{#if demoUptimeDays.length}
+				<UptimeBars days={demoUptimeDays} variant="route" ariaLabel={formatCopy(statusSite.copy.uptime.uptimeAriaLabel, { days: demoUptimeDays.length, status: statusLabels[overallStatus].toLowerCase(), site: siteName })} locale={statusSite.locale} />
+				<div class="uptime-scale"><span>{formatCopy(statusSite.copy.timeRange.ago, { days: demoUptimeDays.length })}</span><span>{statusSite.copy.timeRange.today}</span></div>
+			{:else}
+				<EmptyState state={statusSite.copy.emptyStates.uptime} compact />
+			{/if}
+			<p class="uptime-verified">{statusSite.copy.uptime.verified} {verifiedAt}</p>
 		</section>
 
-		<section class="route-section" aria-labelledby="journeys-title">
-			<div class="route-section__heading">
-				<h2 id="journeys-title">Service journeys</h2>
-				<span>100.00% each</span>
-			</div>
-			<ul class="journeys-list">
-				{#each journeys as journey}
-					<li>
-						<span class="journey-copy">
-							<strong>{journey.name}</strong>
-							<small>{journey.detail}</small>
-						</span>
-						<span class="journey-value"><span class="status-dot" aria-hidden="true"></span>100.00%</span>
-					</li>
-				{/each}
-			</ul>
-		</section>
+		<ServiceStatusReports
+			id="uptime-service-reports"
+			heading={statusSite.copy.uptime.serviceJourneys}
+			services={demoServices}
+			variant="route"
+		/>
 	</div>
 </main>
 
@@ -101,70 +110,10 @@
 		line-height: 1.4;
 	}
 
-	.journeys-list {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.journeys-list li {
-		display: flex;
-		min-height: 76px;
-		align-items: center;
-		justify-content: space-between;
-		gap: 24px;
-		padding: 16px 0;
-		border-bottom: 1px solid var(--status-line-soft);
-	}
-
-	.journey-copy {
-		display: grid;
-		gap: 4px;
-		min-width: 0;
-	}
-
-	.journey-copy strong {
-		color: var(--status-ink);
-		font-size: var(--status-text-body-sm);
-		font-weight: 500;
-	}
-
-	.journey-copy small {
-		color: var(--status-ink-soft);
-		font-size: var(--status-text-ui);
-		line-height: 1.4;
-		text-wrap: pretty;
-	}
-
-	.journey-value {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		color: var(--status-positive-strong);
-		font-size: var(--status-text-ui-lg);
-		font-variant-numeric: tabular-nums;
-		font-weight: 600;
-		white-space: nowrap;
-	}
-
-	.status-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--status-positive);
-	}
-
 	@media (max-width: 38.75rem) {
 		.uptime-summary {
 			padding-block: 22px;
 		}
 
-		.journeys-list li {
-			gap: 12px;
-		}
-
-		.journey-value {
-			font-size: var(--status-text-caption);
-		}
 	}
 </style>

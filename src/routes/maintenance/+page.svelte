@@ -1,42 +1,84 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { statusSite } from '$lib/config/site';
+	import {
+		defaultMaintenanceEvent,
+		demoMaintenanceEvents,
+		maintenanceStatusLabels
+	} from '$lib/data/maintenance';
+	import { formatCopy } from '$lib/data/status';
+
+	const dateFormatter = new Intl.DateTimeFormat(statusSite.locale, {
+		day: 'numeric',
+		month: 'long',
+		year: 'numeric',
+		timeZone: statusSite.timeZone
+	});
+
+	const timeFormatter = new Intl.DateTimeFormat(statusSite.locale, {
+		hour: 'numeric',
+		minute: '2-digit',
+		timeZone: statusSite.timeZone,
+		timeZoneName: 'short'
+	});
+
+	const selectedEvent = $derived(
+		demoMaintenanceEvents.find((event) => event.id === page.url.searchParams.get('event')) ?? defaultMaintenanceEvent
+	);
+	const serviceNames = new Map(statusSite.serviceJourneys.map((service) => [service.id, service.name]));
+	let siteName = $derived(page.data.tenant?.record?.displayName ?? statusSite.name);
+
+	function formatAffectedServices(serviceIds: string[]) {
+		return serviceIds
+			.map((serviceId) => serviceId === '*' ? statusSite.copy.maintenance.allServices : serviceNames.get(serviceId) ?? serviceId)
+			.join(', ');
+	}
 </script>
 
+
 <svelte:head>
-	<title>Maintenance | {statusSite.name} status</title>
-	<meta name="description" content={`Scheduled maintenance for ${statusSite.name}.`} />
+	<title>{formatCopy(statusSite.copy.pageTitle, { title: statusSite.copy.maintenance.title, site: siteName })}</title>
+	<meta name="description" content={formatCopy(statusSite.copy.maintenance.metaDescription, { site: siteName })} />
 </svelte:head>
 
 <main id="main-content" class="route-page">
 	<div class="route-container">
 		<header class="route-header">
-			<h1>Maintenance</h1>
-			<p>Planned work for {statusSite.name}.</p>
+			<h1>{statusSite.copy.maintenance.title}</h1>
+			<p>{formatCopy(statusSite.copy.maintenance.description, { site: siteName })}</p>
 		</header>
 
+		{#if selectedEvent}
 		<section class="route-block maintenance-event" aria-labelledby="maintenance-event-title">
 			<div class="maintenance-event__heading">
 				<div class="maintenance-event__date">
-					<time datetime="2026-09-03T03:00:00+03:00">September 3, 2026</time>
-					<span>3:00 am EAT</span>
+					<time datetime={selectedEvent.start}>{dateFormatter.format(new Date(selectedEvent.start))}</time>
+					<span>{timeFormatter.format(new Date(selectedEvent.start))}</span>
 				</div>
-				<span class="maintenance-event__status">Scheduled</span>
+				<span class="maintenance-event__status">{maintenanceStatusLabels[selectedEvent.status]}</span>
 			</div>
 
 			<div class="maintenance-event__body">
 				<div class="maintenance-icon" aria-hidden="true">
-					<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></svg>
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></svg>
 				</div>
 				<div>
-					<h2 id="maintenance-event-title">{statusSite.name}</h2>
-					<p>Scheduled maintenance. Customer impact has not been confirmed.</p>
+					<h2 id="maintenance-event-title">{selectedEvent.title}</h2>
+					<p>{selectedEvent.summary}</p>
+					<p class="maintenance-event__services">{statusSite.copy.maintenance.affectedServices}: {formatAffectedServices(selectedEvent.affectedServices)}</p>
 				</div>
 			</div>
 		</section>
+		{:else}
+			<section class="maintenance-event maintenance-event--empty">
+				<EmptyState state={statusSite.copy.emptyStates.maintenance} />
+			</section>
+		{/if}
 
 		<p class="route-note">
 			<span class="route-note__mark" aria-hidden="true">i</span>
-			<span>Updates will appear here if the maintenance changes service availability.</span>
+			<span>{statusSite.copy.maintenance.updateNote}</span>
 		</p>
 	</div>
 </main>
